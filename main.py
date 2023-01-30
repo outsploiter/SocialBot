@@ -1,8 +1,8 @@
-import helper_functions
+from utils import social_handler
 
 
 def main():
-    helper_functions.download_from_subreddit('dankmemes')
+    social_handler.download_from_subreddit('terriblefacebookmemes', no_posts=10)
 
 
 if __name__ == '__main__':

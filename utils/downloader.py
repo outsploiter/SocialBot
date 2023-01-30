@@ -10,11 +10,11 @@ def mention_id(new_image):
     draw = ImageDraw.Draw(new_image)
 
     # Choose a font and size
-    font = ImageFont.truetype('fonts/Changa.ttf', 17)
+    font = ImageFont.truetype('assets/fonts/Changa.ttf', 25)
 
     # Position of the text (bottom right corner)
     width, height = new_image.size
-    text_position = (width * .10, height * .90)
+    text_position = (width * .03, height * .90)
 
     # Text color and transparency (r, g, b, a)
     text_color = (225, 225, 225, 220)
@@ -77,6 +77,21 @@ def download_image(post, subreddit):
         response = requests.get(url)
         image = Image.open(BytesIO(response.content))
         processed_image = process_image(image)
-        image.save(file_name)
+        processed_image.save(file_name)
     else:
         print("File already exists and not downloaded")
+
+
+def download_from_subreddit(subreddit_name, no_posts=10):
+    reddit = social_handler.get_reddit_client()
+    subreddit = reddit.subreddit(subreddit_name)
+    thread_list = subreddit.top(time_filter="day", limit=no_posts)
+    for i in thread_list:
+        if i.is_self:
+            print('text exists', end=', ')
+        if i.domain == 'i.redd.it' and 'gif' not in i.url:
+            print('image exists', end=', ')
+            download_image(i, subreddit_name)
+        if i.domain == 'v.redd.it' or 'gif' in i.url:
+            print('video', end='.')
+        print()

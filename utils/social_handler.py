@@ -1,11 +1,8 @@
 import json
-import os.path
-from pathlib import Path
+import os
 
 from instagrapi import Client
 import praw
-
-import downloader
 
 
 def get_insta_client():
@@ -18,12 +15,6 @@ def get_insta_client():
     json.dump(cl.get_settings(), open('cookies.json', 'w'), indent=4)
 
     return cl
-
-
-def upload_to_insta(file):
-    photo_path = Path(file)
-    cl = get_insta_client()
-    cl.photo_upload(photo_path, "hello this is a test from api")
 
 
 def get_reddit_client():
@@ -39,22 +30,7 @@ def get_reddit_client():
         )
 
     except Exception as e:
-        print("Something went wrong...", e)
+        print("Something went wrong in reddit client...", e)
         reddit_cl = None
 
     return reddit_cl
-
-
-def download_from_subreddit(subreddit_name):
-    reddit = get_reddit_client()
-    subreddit = reddit.subreddit(subreddit_name)
-    thread_list = subreddit.top(time_filter="day", limit=5)
-    for i in thread_list:
-        if i.is_self:
-            print('text exists', end=', ')
-        if i.domain == 'i.redd.it' and 'gif' not in i.url:
-            print('image exists', end=', ')
-            downloader.download_image(i, subreddit_name)
-        if i.domain == 'v.redd.it' or 'gif' in i.url:
-            print('video', end='.')
-        print()
