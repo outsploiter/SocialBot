@@ -5,6 +5,14 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
+from utils.social_handler import get_reddit_client
+
+TAGS = '''
+.
+.
+.
+#trending #viral #instagram #love #explorepage #explore #instagood #fashion #follow #tiktok #like #likeforlikes #followforfollowback #photography #india #trend #instadaily #memes #music #style #trendingnow #reels #foryou #likes #photooftheday #model #beautiful #bollywood #bhfyp #insta
+'''
 
 def mention_id(new_image):
     draw = ImageDraw.Draw(new_image)
@@ -63,6 +71,7 @@ def download_image(post, subreddit):
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
     url = post.url
+    caption = post.title + TAGS
     print(url)
     file_name = url.split("/")
     if len(file_name) == 0:
@@ -72,18 +81,24 @@ def download_image(post, subreddit):
         file_name += ".jpg"
 
     file_name = path + '/' + file_name
+    text_file = file_name.split('.')[0] + '.txt'
     if not os.path.exists(file_name):
         print('downloading file', file_name)
         response = requests.get(url)
         image = Image.open(BytesIO(response.content))
         processed_image = process_image(image)
-        processed_image.save(file_name)
+        image_name = file_name.replace(file_name.split('.')[1], 'jpg')
+        processed_image.save(image_name)
+        # save title as caption text file
+        text_file = open(text_file, "w", encoding="utf-8")
+        n = text_file.write(caption)
+        text_file.close()
     else:
         print("File already exists and not downloaded")
 
 
 def download_from_subreddit(subreddit_name, no_posts=10):
-    reddit = social_handler.get_reddit_client()
+    reddit = get_reddit_client()
     subreddit = reddit.subreddit(subreddit_name)
     thread_list = subreddit.top(time_filter="day", limit=no_posts)
     for i in thread_list:

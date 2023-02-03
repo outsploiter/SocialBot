@@ -1,8 +1,11 @@
+import datetime
+import os
+import time
 from pathlib import Path
 from itertools import islice
 
 
-def show_inventory(dir_path: Path, level: int = -1, limit_to_directories: bool = False, length_limit: int = 1000):
+def show_inventory(dir_path: Path = 'data/', level: int = -1, limit_to_directories: bool = False, length_limit: int = 1000):
     space = '    '
     branch = '│   '
     tee = '├── '
@@ -11,6 +14,7 @@ def show_inventory(dir_path: Path, level: int = -1, limit_to_directories: bool =
     dir_path = Path(dir_path)  # accept string coerceable to Path
     files = 0
     directories = 0
+    file_list = []
 
     def inner(dir_path: Path, prefix: str = '', level=-1):
         nonlocal files, directories
@@ -28,6 +32,7 @@ def show_inventory(dir_path: Path, level: int = -1, limit_to_directories: bool =
                 extension = branch if pointer == tee else space
                 yield from inner(path, prefix=prefix + extension, level=level - 1)
             elif not limit_to_directories:
+                file_list.append(path)
                 yield prefix + pointer + path.name
                 files += 1
 
@@ -38,4 +43,16 @@ def show_inventory(dir_path: Path, level: int = -1, limit_to_directories: bool =
     if next(iterator, None):
         print(f'... length_limit, {length_limit}, reached, counted:')
     print(f'\n{directories} directories' + (f', {files} files' if files else ''))
+    file_list.sort(key=lambda x: os.path.getctime(x))
+    return file_list
+
+
+def find_files(path='data', no_of_files=5):
+    print("in find files")
+    files = show_inventory()
+
+    output_list = []
+    if len(files) < no_of_files*2:
+        return [file for file in files if 'txt' not in str(file)]
+    return [file for file in files[:no_of_files*2] if 'txt' not in str(file)]
 

@@ -1,8 +1,11 @@
-from utils import social_handler
+from utils import downloader, uploader
 
 
 def main():
-    social_handler.download_from_subreddit('terriblefacebookmemes', no_posts=10)
+    no_of_post = 2
+    subreddit = 'dankmemes'
+    downloader.download_from_subreddit(subreddit, no_of_post)
+    uploader.upload(no_of_post)
 
 
 if __name__ == '__main__':
