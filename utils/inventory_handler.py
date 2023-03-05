@@ -1,6 +1,4 @@
-import datetime
 import os
-import time
 from pathlib import Path
 from itertools import islice
 
@@ -51,7 +49,6 @@ def find_files(path='data', no_of_files=5):
     print("in find files")
     files = show_inventory()
 
-    output_list = []
     if len(files) < no_of_files*2:
         return [file for file in files if 'txt' not in str(file)]
     return [file for file in files[:no_of_files*2] if 'txt' not in str(file)]

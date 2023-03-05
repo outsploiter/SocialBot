@@ -4,18 +4,24 @@ from pathlib import Path
 import utils.inventory_handler as inv
 from utils.social_handler import get_insta_client
 
-cl = None
+insta_client = None
 
 
-def upload_photo_insta(file_path):
-    image = Path(file_path)
-    global cl
-    if cl is None:
-        cl = get_insta_client()
+def upload_to_insta(file_path):
+    content = Path(file_path)
+    global insta_client
+    if insta_client is None:
+        insta_client = get_insta_client()
     caption_path = file_path.replace(file_path.split('.')[1], 'txt')
+    _temp = None
     with open(caption_path, encoding='utf-8') as file:
         caption = file.read()
-    _temp = cl.photo_upload(image, caption)
+
+    if file_path.endswith('jpg'):
+        _temp = insta_client.photo_upload(content, caption)
+    elif file_path.endswith('mp4'):
+        _temp = insta_client.video_upload(content, caption)
+
     if _temp is not None:
         os.remove(file_path)
         os.remove(caption_path)
@@ -28,8 +34,8 @@ def upload(no_of_files=5):
     count = 0
     uploaded_flag = None
     for file in files_to_upload:
-        if 'jpg' in str(file):
-            uploaded_flag = upload_photo_insta(str(file))
+        if str(file).endswith('jpg') or str(file).endswith('_insta.mp4'):
+            uploaded_flag = upload_to_insta(str(file))
         if uploaded_flag is not None:
             count += 1
         if count >= no_of_files:
