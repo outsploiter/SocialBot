@@ -5,7 +5,7 @@ reddit_client_id = 'client id goes here'
 reddit_client_secret = 'client secret goes here'
 reddit_user_agent = 'user agent goes here'
 reddit_username = 'username goes here'
-reddit_password = 'SaraNyAA@'
+reddit_password = 'password goes here'
 
 # insta details
 insta_profile = {
