@@ -22,9 +22,12 @@ def upload_to_insta(file_path):
     elif file_path.endswith('mp4'):
         _temp = insta_client.video_upload(content, caption)
 
+    # Renaming file so we don't upload them again
     if _temp is not None:
-        os.remove(file_path)
-        os.remove(caption_path)
+        new_file_path = file_path.replace('.jpg', '_uploaded.jpg').replace('.mp4', '_uploaded.mp4')
+        new_caption_path = caption_path.replace('.txt', '_uploaded.txt')
+        os.rename(file_path, new_file_path)
+        os.rename(caption_path, new_caption_path)
     return _temp
 
 
@@ -34,7 +37,7 @@ def upload(no_of_files=5):
     count = 0
     uploaded_flag = None
     for file in files_to_upload:
-        if str(file).endswith('jpg') or str(file).endswith('_insta.mp4'):
+        if str(file).endswith('_insta.jpg') or str(file).endswith('_insta.mp4'):
             uploaded_flag = upload_to_insta(str(file))
         if uploaded_flag is not None:
             count += 1

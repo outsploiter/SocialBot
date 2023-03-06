@@ -70,6 +70,8 @@ def download_image(post, subreddit):
     if "." not in file_name:
         file_name += ".jpg"
 
+    file_name = file_name.replace('.jpg', '_insta.jpg')
+
     file_name = path + '/' + file_name
     text_file = file_name.split('.')[0] + '.txt'
     if not os.path.exists(file_name):
@@ -96,10 +98,11 @@ def unshorten_url(url):
     return response.url
 
 
-def create_video_tittle_file(tittle, path, file_name):
-    if len(tittle)>60 or len(tittle)<8:
-        tittle = 'Wait for it..'
-    words = tittle.split()
+def create_tittle_and_caption_txt(post, path, file_name):
+    title = post.title
+    if len(title)>60 or len(title) < 8:
+        title = 'Wait for it..'
+    words = title.split()
     lines = []
     while words:
         line_words = [words.pop(0)]
@@ -112,14 +115,12 @@ def create_video_tittle_file(tittle, path, file_name):
     with open(path + '/' + file_name + '_tittle.txt', 'w', encoding='utf-8') as file:
         file.write(formatted_tittle)
 
-
-def create_video_caption_file(post, path, file_name):
     post.comment_sort = 'best'
     post.comment_limit = 1
     for top_level_comment in post.comments:
         if str(top_level_comment.__class__) == "<class 'praw.models.reddit.comment.Comment'>":
             with open(path + '/' + file_name + '_insta.txt', 'w', encoding='utf-8') as file:
-                file.write(str(top_level_comment.body)+TAGS)
+                file.write(str(top_level_comment.body) + TAGS)
     print('Created caption file')
 
 
@@ -151,14 +152,14 @@ def download_video(post, subreddit):
     with open(path + '/' + audio_filename, 'wb') as f:
         f.write(audio_content)
 
-    create_video_tittle_file(post.title, path, file_name)
-    create_video_caption_file(post, path, file_name)
+    create_tittle_and_caption_txt(post, path, file_name)
 
     print('Editing the video as reel')
     video_edit_command = f'''ffmpeg -i {path + '/' + video_filename} -i {path + '/' + audio_filename} -filter:v "crop=ih*9/16:ih,scale=-1:1080,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:white, drawtext=fontfile=assets/fonts/type.ttf:text='@_galibaa_':fontcolor=black:fontsize=50:x=50:y=(h-text_h-50), drawtext=fontfile=assets/fonts/emoji.ttf:text='R R R':fontcolor=black:fontsize=90:x=(w-tw)/2:y=h-th-280, drawtext=textfile='{path}/{file_name}_tittle.txt':fontfile='assets/fonts/cute.ttf':fontsize=50:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/10" -c:v libx264 -preset medium -crf 23 -c:a aac -b:a 256k {path}/{file_name}_insta.mp4'''
     shell_flag = subprocess.run(["powershell", video_edit_command], shell=True, stdout=subprocess.DEVNULL)
     if shell_flag.returncode == 0:
         print('Reel created\n')
+        return True
     else:
         print('Edit failed')
 
@@ -169,6 +170,8 @@ def download_from_subreddit(subreddit_name, no_posts):
     thread_list = subreddit.top(time_filter="day", limit=25)
     count = 0
     for i in thread_list:
+        if count >= no_posts:
+            break
         if i.is_self:
             print('text exists', end=', ')
         if i.domain == 'i.redd.it' and 'gif' not in i.url:
@@ -180,6 +183,3 @@ def download_from_subreddit(subreddit_name, no_posts):
             if download_video(i, subreddit_name):
                 count += 1
         print()
-
-        if count >= no_posts:
-            break

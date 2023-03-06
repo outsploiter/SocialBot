@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from itertools import islice
 
@@ -21,7 +22,11 @@ def show_inventory(dir_path: Path = 'data/', level: int = -1, limit_to_directori
         if limit_to_directories:
             contents = [d for d in dir_path.iterdir() if d.is_dir()]
         else:
-            contents = list(dir_path.iterdir())
+            try:
+                contents = list(dir_path.iterdir())
+            except FileNotFoundError:
+                print('No files are found..')
+                sys.exit()
         pointers = [tee] * (len(contents) - 1) + [last]
         for pointer, path in zip(pointers, contents):
             if path.is_dir():
@@ -46,10 +51,23 @@ def show_inventory(dir_path: Path = 'data/', level: int = -1, limit_to_directori
 
 
 def find_files(path='data', no_of_files=5):
-    print("in find files")
     files = show_inventory()
 
     if len(files) < no_of_files*2:
         return [file for file in files if 'txt' not in str(file)]
     return [file for file in files[:no_of_files*2] if 'txt' not in str(file)]
 
+
+def cleanup_uploaded_files():
+    import datetime
+    print('Cleaning uploaded files..')
+    file_list = show_inventory()
+
+    for file in file_list:
+        if os.path.isfile(file):
+            creation_time = os.path.getctime(file)
+            creation_date = datetime.datetime.fromtimestamp(creation_time)
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+            if creation_date.date() <= yesterday.date():
+                print(f"Deleting the file since the file {file} was created yesterday or before.")
+                os.remove(file)
