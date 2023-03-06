@@ -5,14 +5,16 @@ from instagrapi import Client
 import praw
 
 
-def get_insta_client():
-    if os.path.exists('cookies.json'):
-        cl = Client(json.load(open('cookies.json')))
+def get_insta_client(profile):
+    import auth
+    profile = auth.insta_profile[profile]
+    cookie_file = f'{profile["user"]}.json'
+    if os.path.exists(cookie_file):
+        cl = Client(json.load(open(cookie_file)))
     else:
-        import auth
         cl = Client()
-        cl.login(auth.insta_user, auth.insta_password)
-    json.dump(cl.get_settings(), open('cookies.json', 'w'), indent=4)
+        cl.login(profile['user'], profile['password'])
+    json.dump(cl.get_settings(), open(cookie_file, 'w'), indent=4)
 
     return cl
 

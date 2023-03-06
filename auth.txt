@@ -1,0 +1,22 @@
+''' edit this file and rename it to auth.py '''
+
+# reddit details
+reddit_client_id = 'client id goes here'
+reddit_client_secret = 'client secret goes here'
+reddit_user_agent = 'user agent goes here'
+reddit_username = 'username goes here'
+reddit_password = 'SaraNyAA@'
+
+# insta details
+insta_profile = {
+    'profile_1':
+        {
+            'user': 'user_name_1',
+            'password': 'password_1'
+        },
+    'profile_2':
+        {
+            'user': 'user_name_2',
+            'password': 'password_2'
+        }
+}

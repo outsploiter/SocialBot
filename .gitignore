@@ -131,7 +131,10 @@ dmypy.json
 
 #myfiles
 data*
-auth*
+auth.py
 cookie*
 rough*
 ROUGH*
+
+#cookie files
+*.json

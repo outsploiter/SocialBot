@@ -7,11 +7,11 @@ from utils.social_handler import get_insta_client
 insta_client = None
 
 
-def upload_to_insta(file_path):
+def upload_to_insta(file_path, profile):
     content = Path(file_path)
     global insta_client
     if insta_client is None:
-        insta_client = get_insta_client()
+        insta_client = get_insta_client(profile)
     caption_path = file_path.replace(file_path.split('.')[1], 'txt')
     _temp = None
     with open(caption_path, encoding='utf-8') as file:
@@ -31,14 +31,14 @@ def upload_to_insta(file_path):
     return _temp
 
 
-def upload(no_of_files=5):
+def upload(no_of_files, profile):
     files_to_upload = inv.find_files()
     # print(str(files_to_upload[0]).replace('png', 'txt'))
     count = 0
     uploaded_flag = None
     for file in files_to_upload:
         if str(file).endswith('_insta.jpg') or str(file).endswith('_insta.mp4'):
-            uploaded_flag = upload_to_insta(str(file))
+            uploaded_flag = upload_to_insta(str(file), profile)
         if uploaded_flag is not None:
             count += 1
         if count >= no_of_files:
