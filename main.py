@@ -19,7 +19,7 @@ def main():
     parser.add_argument('-s', '--start', type=str, default=None, help='enter the start of the clip')
     parser.add_argument('-e', '--end', type=str, default=None, help='enter the end of the clip')
 
-    parser.add_argument('-ip', '--profile', type=str, default='profile_1',
+    parser.add_argument('-p', '--profile', type=str, default='profile_1',
                         help='Enter the profile as entered in auth.py')
     parser.add_argument('-u', '--no_of_upload', default=None, type=int,
                         help='enter the no of posts to be uploaded to instagram')
@@ -38,10 +38,10 @@ def main():
 
     clean = args.clean
 
-    if subreddit and no_of_download:
+    if subreddit and no_of_download and insta_profile:
         if subreddit.startswith('r/'):
             subreddit = subreddit.split('r/')[1]
-        downloader.download_from_subreddit(subreddit, no_of_download)
+        downloader.download_from_subreddit(subreddit, no_of_download, insta_profile)
 
     if no_of_upload and insta_profile:
         uploader.upload(no_of_upload, insta_profile)

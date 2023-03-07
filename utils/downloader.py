@@ -7,6 +7,7 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
+import auth
 from utils.social_handler import get_reddit_client
 
 TAGS = '''
@@ -17,18 +18,18 @@ TAGS = '''
 '''
 
 
-def mention_id(new_image):
+def mention_id(new_image, user_name):
     draw = ImageDraw.Draw(new_image)
     font = ImageFont.truetype('assets/fonts/Changa.ttf', 25)
     width, height = new_image.size
     text_position = (width * .03, height * .90)
     text_color = (225, 225, 225, 220)
-    insta_id = "@_galibaa_"
+    insta_id = f'@{user_name}'
     draw.text(text_position, insta_id, font=font, fill=text_color, stroke_width=1, stroke_fill='black')
     return new_image
 
 
-def process_image(image, add_mention=True):
+def process_image(image, add_mention, profile):
     width, height = image.size
     aspect_ratio = width / height
     # Create a new image with the new aspect ratio
@@ -51,12 +52,13 @@ def process_image(image, add_mention=True):
     new_image.paste(image, (int((new_size[0] - width) / 2), int((new_size[1] - height) / 2)))
 
     if add_mention:
-        new_image = mention_id(new_image)
+        user_name = auth.insta_profile[profile]['user']
+        new_image = mention_id(new_image, user_name)
 
     return new_image
 
 
-def download_image(post, subreddit):
+def download_image(post, subreddit, profile):
     path = f'data/{subreddit}/images'
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
@@ -78,7 +80,7 @@ def download_image(post, subreddit):
         print('downloading file', file_name)
         response = requests.get(url)
         image = Image.open(BytesIO(response.content))
-        processed_image = process_image(image)
+        processed_image = process_image(image, True, profile)
         image_name = file_name.replace(file_name.split('.')[1], 'jpg')
         processed_image.save(image_name)
         # save title as caption text file
@@ -124,7 +126,7 @@ def create_tittle_and_caption_txt(post, path, file_name):
     print('Created caption file')
 
 
-def download_video(post, subreddit):
+def download_video(post, subreddit, profile):
     path = f'data/{subreddit}/videos'
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
@@ -153,9 +155,10 @@ def download_video(post, subreddit):
         f.write(audio_content)
 
     create_tittle_and_caption_txt(post, path, file_name)
+    user_name = auth.insta_profile[profile]['user']
 
     print('Editing the video as reel')
-    video_edit_command = f'''ffmpeg -i {path + '/' + video_filename} -i {path + '/' + audio_filename} -filter:v "crop=ih*9/16:ih,scale=-1:1080,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:white, drawtext=fontfile=assets/fonts/type.ttf:text='@_galibaa_':fontcolor=black:fontsize=50:x=50:y=(h-text_h-50), drawtext=fontfile=assets/fonts/emoji.ttf:text='R R R':fontcolor=black:fontsize=90:x=(w-tw)/2:y=h-th-280, drawtext=textfile='{path}/{file_name}_tittle.txt':fontfile='assets/fonts/cute.ttf':fontsize=50:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/10" -c:v libx264 -preset medium -crf 23 -c:a aac -b:a 256k {path}/{file_name}_insta.mp4'''
+    video_edit_command = f'''ffmpeg -i {path + '/' + video_filename} -i {path + '/' + audio_filename} -filter:v "crop=ih*9/16:ih,scale=-1:1080,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:white, drawtext=fontfile=assets/fonts/type.ttf:text='@{user_name}':fontcolor=black:fontsize=50:x=50:y=(h-text_h-50), drawtext=fontfile=assets/fonts/emoji.ttf:text='R R R':fontcolor=black:fontsize=90:x=(w-tw)/2:y=h-th-280, drawtext=textfile='{path}/{file_name}_tittle.txt':fontfile='assets/fonts/cute.ttf':fontsize=50:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/10" -c:v libx264 -preset medium -crf 23 -c:a aac -b:a 256k {path}/{file_name}_insta.mp4'''
     shell_flag = subprocess.run(["powershell", video_edit_command], shell=True, stdout=subprocess.DEVNULL)
     if shell_flag.returncode == 0:
         print('Reel created\n')
@@ -164,7 +167,7 @@ def download_video(post, subreddit):
         print('Edit failed')
 
 
-def download_from_subreddit(subreddit_name, no_posts):
+def download_from_subreddit(subreddit_name, no_posts, profile):
     reddit = get_reddit_client()
     subreddit = reddit.subreddit(subreddit_name)
     thread_list = subreddit.top(time_filter="day", limit=25)
@@ -176,10 +179,10 @@ def download_from_subreddit(subreddit_name, no_posts):
             print('text exists', end=', ')
         if i.domain == 'i.redd.it' and 'gif' not in i.url:
             print('image exists', end=', ')
-            if download_image(i, subreddit_name):
+            if download_image(i, subreddit_name, profile):
                 count += 1
         if i.domain == 'v.redd.it':
             print('video', end='.\n')
-            if download_video(i, subreddit_name):
+            if download_video(i, subreddit_name, profile):
                 count += 1
         print()
