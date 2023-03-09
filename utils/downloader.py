@@ -188,7 +188,18 @@ def download_from_subreddit(subreddit_name, no_posts, profile):
         print()
 
 
-def download_yt_video(youtube_link, start, end, movie_name='generic'):
+def edit_yt_video(path, profile):
+    user_name = auth.insta_profile[profile]['user']
+    output_path = path.replace('.mp4', '_reels.mp4')
+    video_edit_command = f'''ffmpeg -i {path} -filter:v "crop=ih*9/16:ih,scale=-1:1080:flags=lanczos, drawtext=fontfile=assets/fonts/bgfont.ttf:text='@{user_name}':fontcolor=white:fontsize=25:x=50:y=(h-text_h-50)" -c:a copy -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p -movflags +faststart {output_path}'''
+    shell_flag = subprocess.run(["powershell", video_edit_command], shell=True, stdout=subprocess.DEVNULL)
+    if shell_flag.returncode == 0:
+        print('Reel created\n')
+    else:
+        print('Edit failed')
+
+
+def download_yt_video(youtube_link, start, end, profile, movie_name='generic'):
     path = f'data/youtube/{movie_name}'
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
@@ -197,3 +208,5 @@ def download_yt_video(youtube_link, start, end, movie_name='generic'):
     shell_flag = subprocess.run(["powershell", command_to_download], shell=True, stdout=subprocess.DEVNULL)
     if shell_flag.returncode == 0:
         print('Yt video Downloaded\n')
+        edit_yt_video(f'{path}/{video_id}.mp4', profile)
+

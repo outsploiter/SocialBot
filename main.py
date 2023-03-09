@@ -51,7 +51,7 @@ def main():
         pattern = r'^([0-5][0-9]):([0-5][0-9]):([0-5][0-9])$'
         import re
         if re.match(pattern, start) and re.match(pattern, end):
-            downloader.download_yt_video(youtube_link, start, end, movie_name)
+            downloader.download_yt_video(youtube_link, start, end, insta_profile, movie_name)
         else:
             print('Start and End should be given in "hh:mm:ss" format')
             print(f'you have provide this.. \nstart: {start}\nend:{end}')
