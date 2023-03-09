@@ -16,6 +16,7 @@ def main():
                         help='enter the no of posts to be downloaded from subreddit')
 
     parser.add_argument('-y', '--youtube_link', default=None, type=str, help='enter the movie file path')
+    parser.add_argument('-m', '--movie_name', default=None, type=str, help='enter the movie name you are downloading')
     parser.add_argument('-s', '--start', type=str, default=None, help='enter the start of the clip')
     parser.add_argument('-e', '--end', type=str, default=None, help='enter the end of the clip')
 
@@ -33,6 +34,9 @@ def main():
     subreddit = args.reddit
 
     youtube_link = args.youtube_link
+    movie_name = args.movie_name
+    start = args.start
+    end = args.end
 
     insta_profile = args.profile
 
@@ -42,6 +46,15 @@ def main():
         if subreddit.startswith('r/'):
             subreddit = subreddit.split('r/')[1]
         downloader.download_from_subreddit(subreddit, no_of_download, insta_profile)
+
+    elif youtube_link and start and end and insta_profile:
+        pattern = r'^([0-5][0-9]):([0-5][0-9]):([0-5][0-9])$'
+        import re
+        if re.match(pattern, start) and re.match(pattern, end):
+            downloader.download_yt_video(youtube_link, start, end, movie_name)
+        else:
+            print('Start and End should be given in "hh:mm:ss" format')
+            print(f'you have provide this.. \nstart: {start}\nend:{end}')
 
     if no_of_upload and insta_profile:
         uploader.upload(no_of_upload, insta_profile)

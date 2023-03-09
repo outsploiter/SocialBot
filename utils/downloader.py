@@ -186,3 +186,14 @@ def download_from_subreddit(subreddit_name, no_posts, profile):
             if download_video(i, subreddit_name, profile):
                 count += 1
         print()
+
+
+def download_yt_video(youtube_link, start, end, movie_name='generic'):
+    path = f'data/youtube/{movie_name}'
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+    video_id = youtube_link.split('/')[-1].replace('watch?v=', '')
+    command_to_download = f'''yt-dlp --format "b*" --external-downloader ffmpeg --external-downloader-args "-ss {start} -to {end}" -f mp4 -o "{path}/{video_id}.mp4" {youtube_link}'''
+    shell_flag = subprocess.run(["powershell", command_to_download], shell=True, stdout=subprocess.DEVNULL)
+    if shell_flag.returncode == 0:
+        print('Yt video Downloaded\n')
