@@ -59,7 +59,7 @@ def process_image(image, add_mention, profile):
 
 
 def download_image(post, subreddit, profile):
-    path = f'data/{subreddit}/images'
+    path = f'{profile}/{subreddit}/images'
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
     url = post.url
@@ -102,7 +102,7 @@ def unshorten_url(url):
 
 def create_tittle_and_caption_txt(post, path, file_name):
     title = post.title
-    if len(title)>60 or len(title) < 8:
+    if len(title) > 60 or len(title) < 8:
         title = 'Wait for it..'
     words = title.split()
     lines = []
@@ -127,7 +127,7 @@ def create_tittle_and_caption_txt(post, path, file_name):
 
 
 def download_video(post, subreddit, profile):
-    path = f'data/{subreddit}/videos'
+    path = f'{profile}/{subreddit}/videos'
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
     url = post.url
@@ -195,18 +195,65 @@ def edit_yt_video(path, profile):
     shell_flag = subprocess.run(["powershell", video_edit_command], shell=True, stdout=subprocess.DEVNULL)
     if shell_flag.returncode == 0:
         print('Reel created\n')
+        return True
     else:
         print('Edit failed')
+        return False
 
 
-def download_yt_video(youtube_link, start, end, profile, movie_name='generic'):
-    path = f'data/youtube/{movie_name}'
+def download_movie_caption(movie_name, path):
+    print('downloading captions')
+    base_url = "http://www.omdbapi.com/"
+    api_key = auth.omdb_api_key
+
+    response = requests.get(base_url, params={"t": movie_name, "plot": "full", "apikey": api_key})
+    json_movie_data = response.json()
+
+    keys = list(json_movie_data.keys())
+
+    with open('assets/templates/caption_template.txt', 'r') as f:
+        template = f.read()
+
+    output_path = path.replace('mp4', 'txt')
+
+    with open(fr'{output_path}', 'w') as f:
+        f.write(template.format(**{k: json_movie_data[k] for k in keys}))
+
+    poster_url = json_movie_data['Poster']
+    response = requests.get(poster_url)
+
+    poster_path = path.replace('mp4', 'jpg')
+
+    with open(poster_path, "wb") as f:
+        f.write(response.content)
+
+    return True
+
+
+def download_yt_video(youtube_link, start, end, profile, movie_name, do_not_edit):
+    if movie_name is None:
+        movie_name = 'Unnamed-collections'
+    path = f'{profile}/youtube/{movie_name}'
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
     video_id = youtube_link.split('/')[-1].replace('watch?v=', '')
-    command_to_download = f'''yt-dlp --format "b*" --external-downloader ffmpeg --external-downloader-args "-ss {start} -to {end}" -f mp4 -o "{path}/{video_id}.mp4" {youtube_link}'''
+    video_output_path = f"{path}/{video_id}_insta.mp4"
+    command_to_download = f'''yt-dlp --format "b*" --external-downloader ffmpeg --external-downloader-args "-ss {start} -to {end}" -f mp4 -o "{video_output_path}" {youtube_link}'''
     shell_flag = subprocess.run(["powershell", command_to_download], shell=True, stdout=subprocess.DEVNULL)
     if shell_flag.returncode == 0:
         print('Yt video Downloaded\n')
-        edit_yt_video(f'{path}/{video_id}.mp4', profile)
 
+    _edited = False
+    if not do_not_edit:
+        _edited = edit_yt_video(video_output_path, profile)
+
+    if _edited:
+        if os.path.exists(video_output_path):
+            os.remove(video_output_path)
+        video_output_path = video_output_path.replace('.mp4', '_reels.mp4')
+
+    if movie_name == 'Unnamed-collections':
+        print('Caption not downloaded...')
+        return 1
+    else:
+        download_movie_caption(movie_name, video_output_path)

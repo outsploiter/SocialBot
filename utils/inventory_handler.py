@@ -4,12 +4,14 @@ from pathlib import Path
 from itertools import islice
 
 
-def show_inventory(dir_path: Path = 'data/', level: int = -1, limit_to_directories: bool = False, length_limit: int = 1000):
+def show_inventory(dir_path: str = 'data/', level: int = -1, limit_to_directories: bool = False, length_limit: int = 1000):
     space = '    '
     branch = '│   '
     tee = '├── '
     last = '└── '
     """Given a directory Path object print a visual tree structure"""
+    if dir_path is not 'data/':
+        dir_path += '/'
     dir_path = Path(dir_path)  # accept string coerceable to Path
     files = 0
     directories = 0
@@ -51,17 +53,17 @@ def show_inventory(dir_path: Path = 'data/', level: int = -1, limit_to_directori
 
 
 def find_files(path='data', no_of_files=5):
-    files = show_inventory()
+    files = show_inventory(path)
 
     if len(files) < no_of_files*2:
         return [file for file in files if 'txt' not in str(file)]
     return [file for file in files[:no_of_files*2] if 'txt' not in str(file)]
 
 
-def cleanup_uploaded_files():
+def cleanup_uploaded_files(profile):
     import datetime
     print('Cleaning uploaded files..')
-    file_list = show_inventory()
+    file_list = show_inventory(profile)
 
     for file in file_list:
         if os.path.isfile(file):

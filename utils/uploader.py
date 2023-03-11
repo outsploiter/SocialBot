@@ -14,16 +14,22 @@ def upload_to_insta(file_path, profile):
         insta_client = get_insta_client(profile)
     caption_path = file_path.replace(file_path.split('.')[1], 'txt')
     _temp = None
+    caption = None
     if os.path.exists(caption_path):
         with open(caption_path, encoding='utf-8') as file:
             caption = file.read()
-    else:
-        caption = '''Look at this amazing video #movies #movie #flim #instagood'''
+    if caption is not None and len(caption)<2200:
+        print('')
+        caption = '''Look at this amazing video\n#movies #movie #flim #instagood'''
 
     if file_path.endswith('jpg'):
         _temp = insta_client.photo_upload(content, caption)
     elif file_path.endswith('mp4'):
-        _temp = insta_client.video_upload(content, caption)
+        thumbnail_path = file_path.replace(file_path.split('.')[1], 'jpg')
+        if os.path.exists(thumbnail_path):
+            _temp = insta_client.video_upload(content, caption=caption, thumbnail=thumbnail_path)
+        else:
+            _temp = insta_client.video_upload(content, caption)
 
     # Renaming file so we don't upload them again
     if _temp is not None:
@@ -38,8 +44,7 @@ def upload_to_insta(file_path, profile):
 
 
 def upload(no_of_files, profile):
-    files_to_upload = inv.find_files()
-    # print(str(files_to_upload[0]).replace('png', 'txt'))
+    files_to_upload = inv.find_files(profile)
     count = 0
     uploaded_flag = None
     for file in files_to_upload:
