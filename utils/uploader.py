@@ -18,7 +18,7 @@ def upload_to_insta(file_path, profile):
     if os.path.exists(caption_path):
         with open(caption_path, encoding='utf-8') as file:
             caption = file.read()
-    if caption is not None and len(caption)<2200:
+    if caption is not None and len(caption)>2000:
         print('')
         caption = '''Look at this amazing video\n#movies #movie #flim #instagood'''
 
